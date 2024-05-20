@@ -1,27 +1,38 @@
-import Storage from "./Storage";
-import "multer";
+const fs = require("fs");
+const multer = require("multer");
+const path = require("path");
+const Storage = require("./Storage");
 
 class DiskStorage extends Storage {
-    #_tempPath;
-    #_path;
-    #_fileName;
+    #_tempFilePath;
+    #_filePath;
 
-    constructor(tempPath, path, fileName) {
-        super();
-        this.#_tempPath = tempPath;
-        this.#_path = path;
-        this.#_fileName = fileName;
+    constructor(fieldName, acceptedTypes, maxFileSize, maxFileNameLength, tempFilePath, filePath) {
+        super(fieldName, acceptedTypes, maxFileSize, maxFileNameLength);
+        
+        this.#_tempFilePath = path.join(__dirname, ...tempFilePath.split('/'));
+        this.#_filePath = path.join(__dirname, ...filePath.split('/'));
+
+        if (!fs.existsSync(this.#_tempFilePath)) {
+            fs.mkdirSync(this.#_tempFilePath);
+        }
+
+        if (!fs.existsSync(this.#_filePath)) {
+            fs.mkdirSync(this.#_filePath);
+        }
+
+        const self = this;
         this.storage = multer.diskStorage({
             destination: function (req, file, done) {
-                if (file.fieldname !== this._fieldName) {
-                    return done(new Error(`Yêu cầu tên trường phải là "${this._fieldname}".`));
+                if (file.fieldname !== self._fieldName) {
+                    return done(new Error(`Yêu cầu tên trường phải là "${self._fieldName}".`));
                 }
         
-                if (!fs.existsSync(this._tempPath)) {
-                    fs.mkdirSync(this._tempPath, { recursive: true });
+                if (!fs.existsSync(self.#_tempFilePath)) {
+                    fs.mkdirSync(self.#_tempFilePath, { recursive: true });
                 }
         
-                return done(null, this._tempPath);
+                return done(null, self.#_tempFilePath);
             },
         
             filename: function (req, file, done) {
@@ -30,20 +41,12 @@ class DiskStorage extends Storage {
         });
     }
 
-    get path() {
-        return this.#_path;
+    get filePath() {
+        return this.#_filePath;
     }
 
-    set path(newPath) {
-        this.#_path = newPath;
-    }
-
-    get fileName() {
-        return this.#_fileName;
-    }
-
-    set fileName(newFileName) {
-        this.#_fileName = newFileName;
+    set filePath(newFilePath) {
+        this.#_filePath = newFilePath;
     }
 }
 
