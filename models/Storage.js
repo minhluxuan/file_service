@@ -38,10 +38,14 @@ class Storage {
         
             return done(null, true);
         };
-        this.#_storage = multer({
+        this.#_upload = multer({
             storage: this.#_storage,
             fileFilter: this.#_filter,
         });
+    }
+
+    get fieldName() {
+        return this.#_fieldName;
     }
 
     get acceptedTypes() {
@@ -82,6 +86,10 @@ class Storage {
 
     set storage(newStorage) {
         this.#_storage = newStorage;
+    }
+
+    get upload() {
+        return this.#_upload;
     }
 };
 
