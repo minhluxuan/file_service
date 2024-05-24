@@ -1,7 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const fileType =  import ("file-type"); 
-const acceptedFileTypes = require("./acceptedFileTypes");
 
 const addFilesToArchive = async (directoryPath, archivePath, archive) => {
     const files = await fs.promises.readdir(directoryPath);
@@ -20,30 +18,19 @@ const addFilesToArchive = async (directoryPath, archivePath, archive) => {
     }
 }
 
-const checkValidFile = async (dir) => {
-    const items = fs.readdirSync(dir);
+const createDirectoriesFromMain = (dirPath) => {
+    const directories = dirPath.split(path.sep);
+    let currentPath = path.join(__dirname, "..", "uploads", "main");
+    directories.forEach((directory) => {
+        currentPath = path.join(currentPath, directory);
 
-    for (const item of items) {
-        const itemPath = path.join(dir, item);
-    
-        if (fs.statSync(itemPath).isDirectory()) {
-            const isValid = await checkValidFile(itemPath);
-            if (!isValid) {
-                return false;
-            }
-        } else {
-            const buffer = fs.readFileSync(itemPath);
-            const type = await (await fileType).fileTypeFromBuffer(buffer);
-            if (!type || !acceptedFileTypes.includes(type.mime)) {
-                return false;
-            }
+        if (!fs.existsSync(currentPath)) {
+            fs.mkdirSync(currentPath, { recursive: true });
         }
-    }
-
-    return true;
-};
+    });
+}
 
 module.exports = {
     addFilesToArchive,
-    checkValidFile,
+    createDirectoriesFromMain,
 }

@@ -3,19 +3,17 @@ const multer = require("multer");
 class Storage {
     #_upload;
     #_fieldName;
-    #_acceptedTypes;
     #_maxFileSize;
     #_maxFileNameLength;
     #_filter;
     #_storage;
 
-    constructor(fieldName, acceptedTypes, maxFileSize, maxFileNameLength) {
+    constructor(fieldName, maxFileSize, maxFileNameLength) {
         if (new.target === Storage) {
             throw new Error("Cannot instantiate an abstract class directly");
         }
 
         this.#_fieldName = fieldName;
-        this.#_acceptedTypes = acceptedTypes;
         this.#_maxFileSize = maxFileSize;
         this.#_maxFileNameLength = maxFileNameLength;
         this.#_filter = (req, file, done) => {
@@ -38,6 +36,9 @@ class Storage {
         
             return done(null, true);
         };
+    }
+
+    _initializeUpload() {
         this.#_upload = multer({
             storage: this.#_storage,
             fileFilter: this.#_filter,
@@ -46,14 +47,6 @@ class Storage {
 
     get fieldName() {
         return this.#_fieldName;
-    }
-
-    get acceptedTypes() {
-        return this.#_acceptedTypes;
-    }
-
-    set acceptedTypes(newAcceptedTypes) {
-        this.#_acceptedTypes = structuredClone(newAcceptedTypes);
     }
 
     get maxFileSize() {
@@ -86,6 +79,7 @@ class Storage {
 
     set storage(newStorage) {
         this.#_storage = newStorage;
+        this._initializeUpload();
     }
 
     get upload() {
